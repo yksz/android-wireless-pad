@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">WirelessPad</string>
 
+    <string name="fullscreen_content">WIRELESS\nPAD</string>
+    <string name="fullscreen_settings_button">Settings</string>
+    <string name="fullscreen_close_button">Close</string>
+
+    <string name="title_activity_settings">SettingsActivity</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 </resources>

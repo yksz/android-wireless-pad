@@ -2,8 +2,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="jp.android.wirelesspad.ui.SettingsActivity">
-    <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
+    <item android:id="@+id/settings_discover_menu"
+        android:title="@string/settings_discover_menu"
         android:orderInCategory="100"
         app:showAsAction="never" />
 </menu>

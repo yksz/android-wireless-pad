@@ -4,9 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-
 import groovy.transform.CompileStatic
-
 import jp.android.wirelesspad.R
 import jp.android.wirelesspad.ui.util.SystemUiHider
 
@@ -33,8 +31,8 @@ public class FullscreenActivity extends Activity {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_fullscreen)
 
-        View controlsView = findViewById(R.id.fullscreen_content_controls)
-        View contentView = findViewById(R.id.fullscreen_content)
+        def controlsView = findViewById(R.id.fullscreen_content_controls)
+        def contentView = findViewById(R.id.fullscreen_content)
 
         // Set up an instance of SystemUiHider to control the system UI for
         // this activity.
@@ -60,7 +58,7 @@ public class FullscreenActivity extends Activity {
     }
 
     public void onClickSettingsButton(View view) {
-        Intent intent = new Intent(this, SettingsActivity.class)
+        def intent = new Intent(this, SettingsActivity.class)
         startActivity(intent)
     }
 

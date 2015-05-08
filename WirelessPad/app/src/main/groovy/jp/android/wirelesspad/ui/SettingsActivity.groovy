@@ -25,25 +25,14 @@ public class SettingsActivity extends ActionBarActivity {
     private BluetoothAdapter mBluetoothAdapter
     private ArrayAdapter<String> mPairedDevicesAdapter
     private ArrayAdapter<String> mDiscoveredDevicesAdapter
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            def action = intent.getAction()
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                def device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                mDiscoveredDevicesAdapter.add(device.getName() + "\n" + device.getAddress())
-            }
-            def deviceList = (ListView) findViewById(R.id.settings_device_list_view)
-            deviceList.setAdapter(mDiscoveredDevicesAdapter)
-        }
-    }
+    private BroadcastReceiver mReceiver
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        contentView = R.layout.activity_settings
 
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        mBluetoothAdapter = BluetoothAdapter.defaultAdapter
         if (mBluetoothAdapter == null) {
             Toast.makeText(this, "This device does not support Bluetooth", Toast.LENGTH_LONG).show()
             finish()
@@ -58,18 +47,33 @@ public class SettingsActivity extends ActionBarActivity {
         findPairedDevices()
 
         mDiscoveredDevicesAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1)
+        mReceiver = createBluetoothDeviceFoundReceiver()
         registerReceiver(mReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND))
     }
 
-    private findPairedDevices() {
-        def pairedDevices = mBluetoothAdapter.getBondedDevices()
+    private void findPairedDevices() {
+        def pairedDevices = mBluetoothAdapter.bondedDevices
         if (!pairedDevices.isEmpty()) {
             for (device in pairedDevices) {
-                mPairedDevicesAdapter.add(device.getName() + "\n" + device.getAddress())
+                mPairedDevicesAdapter.add(device.name + "\n" + device.address)
             }
         }
         def deviceList = (ListView) findViewById(R.id.settings_device_list_view)
-        deviceList.setAdapter(mPairedDevicesAdapter)
+        deviceList.adapter = mPairedDevicesAdapter
+    }
+
+    private BroadcastReceiver createBluetoothDeviceFoundReceiver() {
+        return new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (BluetoothDevice.ACTION_FOUND.equals(intent.action)) {
+                    def device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                    mDiscoveredDevicesAdapter.add(device.name + "\n" + device.address)
+                }
+                def deviceList = (ListView) findViewById(R.id.settings_device_list_view)
+                deviceList.adapter = mDiscoveredDevicesAdapter
+            }
+        }
     }
 
     @Override
@@ -86,33 +90,35 @@ public class SettingsActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_settings, menu)
+        menuInflater.inflate(R.menu.menu_settings, menu)
         return true
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
+        switch (item.itemId) {
             case R.id.settings_discover_menu:
-                discoverDevices();
-                return true;
+                discoverDevices()
+                return true
             default:
-                return super.onOptionsItemSelected(item);
+                return super.onOptionsItemSelected(item)
         }
     }
 
     private void discoverDevices() {
         def textView = (TextView) findViewById(R.id.settings_device_list_text)
-        textView.setText("Discovered Device List")
+        textView.text = "Discovered Device List"
         if (mBluetoothAdapter.isDiscovering()) {
-            mBluetoothAdapter.cancelDiscovery();
+            mBluetoothAdapter.cancelDiscovery()
         }
-        mBluetoothAdapter.startDiscovery();
+        mBluetoothAdapter.startDiscovery()
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy()
-        unregisterReceiver(mReceiver)
+        if (mReceiver != null) {
+            unregisterReceiver(mReceiver)
+        }
     }
 }

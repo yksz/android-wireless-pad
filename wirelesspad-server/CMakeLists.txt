@@ -10,6 +10,6 @@ include_directories(
 )
 
 set(SOURCE_FILES main.c)
-add_definitions(-std=c99)
+add_definitions(-Wall -std=c99)
 add_executable(wirelesspad_server ${SOURCE_FILES})
 target_link_libraries(wirelesspad_server ${EXTRA_LIBS})

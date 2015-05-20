@@ -9,7 +9,7 @@ include_directories(
     "${PROJECT_BINARY_DIR}/libwebsockets"
 )
 
-set(SOURCE_FILES main.c)
+set(SOURCE_FILES main.c callback_windows.c)
 add_definitions(-Wall -std=c99)
 add_executable(wirelesspad_server ${SOURCE_FILES})
 target_link_libraries(wirelesspad_server ${EXTRA_LIBS})

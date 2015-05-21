@@ -1,4 +1,4 @@
-#include <getopt.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,20 +48,12 @@ static bool startServer(int port)
 
 int main(int argc, char* argv[])
 {
-    int port = 8080;
-
-    int c = 0;
-    while ((c = getopt(argc, argv, "p:h")) != -1) {
-        switch (c) {
-            case 'p':
-                port = atoi(optarg);
-                break;
-            case 'h':
-                printf("usage: wirelesspad-server "
-                               "[-h] [-p=<port>]\n");
-                return EXIT_SUCCESS;
-        }
+    int port = 7681;
+    if (argc > 1) {
+        int num = atoi(argv[1]);
+        port = num ? num : port;
     }
+
     if (!startServer(port)) {
         return EXIT_FAILURE;
     }

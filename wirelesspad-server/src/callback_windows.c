@@ -1,11 +1,18 @@
 #include <ctype.h>
+#include <stdio.h>
 #include <string.h>
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 #include "libwebsockets.h"
 
 static void moveCursor(int x, int y)
 {
-    printf("move (%d, %d)\n", x, y);
+    printf("move %d %d\n", x, y);
+	POINT point = {0};
+	GetCursorPos(&point);
+	SetCursorPos(point.x + x, point.y + y);
 }
 
 static void parseReceiveMessage(char* message, size_t len)
@@ -21,10 +28,10 @@ static void parseReceiveMessage(char* message, size_t len)
         tok = strtok(NULL, delimiter);
         int y = (tok != NULL) ? atoi(tok) : 0;
         moveCursor(x, y);
-    } else if (strncmp(tok, "click", len) == 0) {
-        printf("click\n");
-    } else if (strncmp(tok, "doubleclick", len) == 0) {
-        printf("doubleclick\n");
+    } else if (strncmp(tok, "leftclick", len) == 0) {
+        printf("leftclick\n");
+    } else if (strncmp(tok, "rightclick", len) == 0) {
+        printf("rightclick\n");
     } else {
         return;
     }
@@ -43,7 +50,6 @@ int callback(struct libwebsocket_context* context,
         case LWS_CALLBACK_SERVER_WRITEABLE:
             break;
         case LWS_CALLBACK_RECEIVE:
-            printf("websocket - receive\n");
             parseReceiveMessage(in, len);
             break;
         case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION:

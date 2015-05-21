@@ -24,7 +24,8 @@ static void sighandler(int sig)
     libwebsocket_cancel_service(context);
 }
 
-static bool startServer(int port) {
+static bool startServer(int port)
+{
     struct lws_context_creation_info info = {0};
     info.port = port;
     info.protocols = protocols;
@@ -45,7 +46,8 @@ static bool startServer(int port) {
     return true;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     int port = 8080;
 
     int c = 0;

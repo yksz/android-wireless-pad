@@ -2,10 +2,14 @@
     <string name="app_name">WirelessPad</string>
 
     <string name="fullscreen_content">WIRELESS\nPAD</string>
-    <string name="fullscreen_settings_button">Settings</string>
+    <string name="fullscreen_bluetoothSettings_button">Bluetooth Settings</string>
+    <string name="fullscreen_wifiSettings_button">Wi-Fi Settings</string>
     <string name="fullscreen_close_button">Close</string>
 
-    <string name="settings_title">Settings</string>
-    <string name="settings_device_list_text">Paired Device List</string>
-    <string name="settings_discover_menu">Discover devices</string>
+    <string name="bluetoothSettings_title">Bluetooth Settings</string>
+    <string name="bluetoothSettings_deviceList_text">Paired Device List</string>
+    <string name="bluetoothSettings_discover_menu">Discover devices</string>
+
+    <string name="wifiSettings_title">Wi-Fi Settings</string>
+    <string name="wifiSettings_editText_hint">Enter IP address</string>
 </resources>

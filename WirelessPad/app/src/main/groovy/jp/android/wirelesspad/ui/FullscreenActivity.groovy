@@ -103,8 +103,13 @@ public class FullscreenActivity extends Activity {
         return false
     }
 
-    public void onClickSettingsButton(View view) {
-        def intent = new Intent(this, SettingsActivity.class)
+    public void onClickBluetoothSettingsButton(View view) {
+        def intent = new Intent(this, BluetoothSettingsActivity.class)
+        startActivity(intent)
+    }
+
+    public void onClickWiFiSettingsButton(View view) {
+        def intent = new Intent(this, WiFiSettingsActivity.class)
         startActivity(intent)
     }
 

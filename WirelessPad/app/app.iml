@@ -91,6 +91,7 @@
     <orderEntry type="library" exported="" name="support-v4-22.1.1" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-22.1.1" level="project" />
     <orderEntry type="library" exported="" name="groovy-2.4.3-grooid" level="project" />
+    <orderEntry type="library" exported="" name="Java-WebSocket-1.3.0" level="project" />
   </component>
 </module>
 

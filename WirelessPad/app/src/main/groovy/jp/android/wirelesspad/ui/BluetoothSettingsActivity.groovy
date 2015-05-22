@@ -19,7 +19,7 @@ import groovy.transform.CompileStatic
 import jp.android.wirelesspad.R
 
 @CompileStatic
-public class SettingsActivity extends ActionBarActivity {
+public class BluetoothSettingsActivity extends ActionBarActivity {
     private static final int REQUEST_ENABLE_BLUETOOTH = 1
 
     private BluetoothAdapter mBluetoothAdapter
@@ -30,7 +30,7 @@ public class SettingsActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState)
-        contentView = R.layout.activity_settings
+        contentView = R.layout.activity_bluetoothsettings
 
         mBluetoothAdapter = BluetoothAdapter.defaultAdapter
         if (mBluetoothAdapter == null) {
@@ -58,7 +58,7 @@ public class SettingsActivity extends ActionBarActivity {
                 mPairedDevicesAdapter.add(device.name + "\n" + device.address)
             }
         }
-        def deviceList = (ListView) findViewById(R.id.settings_device_list_view)
+        def deviceList = (ListView) findViewById(R.id.bluetoothSettings_deviceList_view)
         deviceList.adapter = mPairedDevicesAdapter
     }
 
@@ -70,7 +70,7 @@ public class SettingsActivity extends ActionBarActivity {
                     def device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                     mDiscoveredDevicesAdapter.add(device.name + "\n" + device.address)
                 }
-                def deviceList = (ListView) findViewById(R.id.settings_device_list_view)
+                def deviceList = (ListView) findViewById(R.id.bluetoothSettings_deviceList_view)
                 deviceList.adapter = mDiscoveredDevicesAdapter
             }
         }
@@ -90,14 +90,14 @@ public class SettingsActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_settings, menu)
+        menuInflater.inflate(R.menu.menu_bluetoothsettings, menu)
         return true
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.itemId) {
-            case R.id.settings_discover_menu:
+            case R.id.bluetoothSettings_discover_menu:
                 discoverDevices()
                 return true
             default:
@@ -106,7 +106,7 @@ public class SettingsActivity extends ActionBarActivity {
     }
 
     private void discoverDevices() {
-        def textView = (TextView) findViewById(R.id.settings_device_list_text)
+        def textView = (TextView) findViewById(R.id.bluetoothSettings_deviceList_text)
         textView.text = "Discovered Device List"
         if (mBluetoothAdapter.isDiscovering()) {
             mBluetoothAdapter.cancelDiscovery()

@@ -33,12 +33,19 @@
             android:orientation="vertical"
             tools:ignore="UselessParent">
 
-            <Button android:id="@+id/fullscreen_settings_button" style="?metaButtonBarButtonStyle"
+            <Button android:id="@+id/fullscreen_bluetoothSettings_button" style="?metaButtonBarButtonStyle"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:text="@string/fullscreen_settings_button"
-                android:onClick="onClickSettingsButton" />
+                android:text="@string/fullscreen_bluetoothSettings_button"
+                android:onClick="onClickBluetoothSettingsButton" />
+
+            <Button android:id="@+id/fullscreen_wifiSettings_button" style="?metaButtonBarButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="@string/fullscreen_wifiSettings_button"
+                android:onClick="onClickWiFiSettingsButton" />
 
             <Button android:id="@+id/fullscreen_close_button" style="?metaButtonBarButtonStyle"
                 android:layout_width="match_parent"

@@ -26,8 +26,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.SettingsActivity"
-            android:label="@string/settings_title" >
+            android:name=".ui.BluetoothSettingsActivity"
+            android:label="@string/bluetoothSettings_title" >
+        </activity>
+        <activity
+            android:name=".ui.WiFiSettingsActivity"
+            android:label="@string/wifiSettings_title" >
         </activity>
     </application>
 

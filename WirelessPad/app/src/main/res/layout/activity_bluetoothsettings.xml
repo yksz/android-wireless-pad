@@ -3,16 +3,16 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="jp.android.wirelesspad.ui.SettingsActivity">
+    tools:context="jp.android.wirelesspad.ui.BluetoothSettingsActivity">
 
     <TextView
+        android:id="@+id/bluetoothSettings_deviceList_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/settings_device_list_text"
-        android:id="@+id/settings_device_list_text" />
+        android:text="@string/bluetoothSettings_deviceList_text" />
 
-    <ListView android:id="@+id/settings_device_list_view"
+    <ListView android:id="@+id/bluetoothSettings_deviceList_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

@@ -10,9 +10,9 @@
 static void moveCursor(int x, int y)
 {
     printf("move %d %d\n", x, y);
-	POINT point = {0};
-	GetCursorPos(&point);
-	SetCursorPos(point.x + x, point.y + y);
+    POINT point = {0};
+    GetCursorPos(&point);
+    SetCursorPos(point.x + x, point.y + y);
 }
 
 static void parseReceiveMessage(char* message, size_t len)

@@ -6,9 +6,16 @@
     tools:context="jp.android.wirelesspad.ui.WiFiSettingsActivity">
 
     <EditText
-        android:id="@+id/wifiSettings_editText"
+        android:id="@+id/wifiSettings_host_editText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/wifiSettings_editText_hint" />
+        android:hint="@string/wifiSettings_host_editText_hint" />
+
+    <Button
+        android:id="@+id/wifiSettings_connect_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/wifiSettings_connect_button"
+        android:onClick="onClickConnectButton" />
 
 </LinearLayout>

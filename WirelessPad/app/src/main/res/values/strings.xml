@@ -11,5 +11,6 @@
     <string name="bluetoothSettings_discover_menu">Discover devices</string>
 
     <string name="wifiSettings_title">Wi-Fi Settings</string>
-    <string name="wifiSettings_editText_hint">Enter IP address</string>
+    <string name="wifiSettings_host_editText_hint">Enter host name</string>
+    <string name="wifiSettings_connect_button">Connect</string>
 </resources>

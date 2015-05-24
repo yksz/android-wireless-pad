@@ -8,8 +8,10 @@ import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Toast
 import groovy.transform.CompileStatic
 import jp.android.wirelesspad.R
+import jp.android.wirelesspad.client.WirelessPadClient
 import jp.android.wirelesspad.ui.util.SystemUiHider
 
 /**
@@ -25,12 +27,15 @@ public class FullscreenActivity extends Activity {
      */
     private static final int HIDER_FLAGS = SystemUiHider.FLAG_HIDE_NAVIGATION
 
+    private static final int REQUEST_TEXT = 0;
+
     /**
      * The instance of the {@link SystemUiHider} for this activity.
      */
     private SystemUiHider mSystemUiHider
 
     private GestureDetector mGestureDetector
+    private WirelessPadClient mClient
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,24 +61,27 @@ public class FullscreenActivity extends Activity {
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
                 Log.d("Gesture", "onSingleTapUp")
+                if (mClient != null) {
+                    try {
+                        mClient.send("leftClick")
+                    } catch (ex) {
+                    }
+                }
                 return super.onSingleTapUp(e)
-            }
-
-            @Override
-            public void onLongPress(MotionEvent e) {
-                mSystemUiHider.toggle()
             }
 
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                 Log.d("Gesture", "onScroll: distanceX=" + distanceX + ", distanceY=" + distanceY)
+                if (mClient != null) {
+                    int moveX = (distanceX + 0.5) as int
+                    int moveY = (distanceY + 0.5) as int
+                    try {
+                        mClient.send("move $moveX $moveY")
+                    } catch (ex) {
+                    }
+                }
                 return super.onScroll(e1, e2, distanceX, distanceY)
-            }
-
-            @Override
-            public boolean onDoubleTap(MotionEvent e) {
-                Log.d("Gesture", "onDoubleTap")
-                return super.onDoubleTap(e)
             }
         })
     }
@@ -83,6 +91,21 @@ public class FullscreenActivity extends Activity {
         super.onResume()
         if (mSystemUiHider.isVisible()) {
             mSystemUiHider.hide()
+        }
+        if (mClient == null) {
+            Toast.makeText(this, "Not connected", Toast.LENGTH_LONG).show()
+        } else if (mClient.connection.isOpen()) {
+            Toast.makeText(this, "Connected", Toast.LENGTH_LONG).show()
+        } else if (mClient.connection.isClosed()) {
+            mClient.connect()
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy()
+        if (mClient != null) {
+            mClient.close()
         }
     }
 
@@ -110,10 +133,26 @@ public class FullscreenActivity extends Activity {
 
     public void onClickWiFiSettingsButton(View view) {
         def intent = new Intent(this, WiFiSettingsActivity.class)
-        startActivity(intent)
+        startActivityForResult(intent, REQUEST_TEXT);
     }
 
     public void onClickCloseButton(View view) {
         mSystemUiHider.hide()
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != RESULT_OK) {
+            return;
+        }
+        switch (requestCode) {
+            case REQUEST_TEXT:
+                def uri = (URI) data.getSerializableExtra("uri")
+                if (uri != null) {
+                    mClient = new WirelessPadClient(uri)
+                    mClient.connect()
+                }
+                break;
+        }
     }
 }

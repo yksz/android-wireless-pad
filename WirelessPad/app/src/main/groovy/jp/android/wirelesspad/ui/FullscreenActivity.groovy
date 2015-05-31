@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -33,8 +32,8 @@ public class FullscreenActivity extends Activity {
      * The instance of the {@link SystemUiHider} for this activity.
      */
     private SystemUiHider mSystemUiHider
+    private MultiTouchGestureDetector mGestureDetector;
 
-    private GestureDetector mGestureDetector
     private WirelessPadClient mClient
 
     @Override
@@ -56,23 +55,35 @@ public class FullscreenActivity extends Activity {
         mGestureDetector = createGestureDetector()
     }
 
-    private GestureDetector createGestureDetector() {
-        return new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+    private MultiTouchGestureDetector createGestureDetector() {
+        return new MultiTouchGestureDetector(this, new MultiTouchGestureDetector.OnGestureListener() {
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
-                Log.d("Gesture", "onSingleTapUp")
+                Log.d("Gesture", "onSingleTapUp: count=" + e.pointerCount)
                 if (mClient != null) {
                     try {
                         mClient.send("leftClick")
                     } catch (ex) {
                     }
                 }
-                return super.onSingleTapUp(e)
+                return false
+            }
+
+            @Override
+            public boolean onMultiTapUp(MotionEvent e) {
+                Log.d("Gesture", "onMultiTapUp: count=" + e.pointerCount)
+                if (mClient != null) {
+                    try {
+                        mClient.send("rightClick")
+                    } catch (ex) {
+                    }
+                }
+                return false
             }
 
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                Log.d("Gesture", "onScroll: distanceX=" + distanceX + ", distanceY=" + distanceY)
+                Log.d("Gesture", "onScroll: count=" + e2.pointerCount + "distanceX=" + distanceX + ", distanceY=" + distanceY)
                 if (mClient != null) {
                     int moveX = (distanceX + 0.5) as int
                     int moveY = (distanceY + 0.5) as int
@@ -81,7 +92,7 @@ public class FullscreenActivity extends Activity {
                     } catch (ex) {
                     }
                 }
-                return super.onScroll(e1, e2, distanceX, distanceY)
+                return false
             }
         })
     }
@@ -93,9 +104,9 @@ public class FullscreenActivity extends Activity {
             mSystemUiHider.hide()
         }
         if (mClient == null) {
-            Toast.makeText(this, "Not connected", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show()
         } else if (mClient.connection.isOpen()) {
-            Toast.makeText(this, "Connected", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
         } else if (mClient.connection.isClosed()) {
             mClient.connect()
         }

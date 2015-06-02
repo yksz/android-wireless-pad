@@ -83,13 +83,20 @@ public class FullscreenActivity extends Activity {
 
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                Log.d("Gesture", "onScroll: count=" + e2.pointerCount + "distanceX=" + distanceX + ", distanceY=" + distanceY)
                 if (mClient != null) {
-                    int moveX = (distanceX + 0.5) as int
-                    int moveY = (distanceY + 0.5) as int
-                    try {
-                        mClient.send("move $moveX $moveY")
-                    } catch (ex) {
+                    if (e2.pointerCount == 1) {
+                        int moveX = (distanceX + 0.5) as int
+                        int moveY = (distanceY + 0.5) as int
+                        try {
+                            mClient.send("move $moveX $moveY")
+                        } catch (ex) {
+                        }
+                    } else if (e2.pointerCount == 2) {
+                        int amount = (distanceY * 2 + 0.5) as int
+                        try {
+                            mClient.send("scroll $amount")
+                        } catch (ex) {
+                        }
                     }
                 }
                 return false

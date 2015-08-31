@@ -1,3 +1,3 @@
-[submodule "wirelesspad-server/libwebsockets"]
-	path = wirelesspad-server/libwebsockets
+[submodule "wpserver_ws/libwebsockets"]
+	path = wpserver_ws/libwebsockets
 	url = https://github.com/warmcat/libwebsockets.git

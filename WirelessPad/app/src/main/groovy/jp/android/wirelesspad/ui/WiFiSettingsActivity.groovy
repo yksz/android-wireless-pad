@@ -9,13 +9,10 @@ import android.widget.EditText
 import android.widget.Toast
 import groovy.transform.CompileStatic
 import jp.android.wirelesspad.R
-import jp.android.wirelesspad.client.WirelessPadClient
+import jp.android.wirelesspad.remote.mouse.WebSocketMouse
 
 @CompileStatic
 public class WiFiSettingsActivity extends ActionBarActivity {
-    private static String PROTOCOL = "ws";
-    private static int PORT = 7681;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState)
@@ -26,27 +23,24 @@ public class WiFiSettingsActivity extends ActionBarActivity {
         def editText = (EditText) findViewById(R.id.wifiSettings_host_editText)
         def host = editText.getText().toString()
 
-        def uri = new URI("${PROTOCOL}://${host}:${PORT}")
-        try {
-            testConnection(uri)
-        } catch (e) {
+        if (!testConnection(host)) {
             Toast.makeText(this, "Connection failed", Toast.LENGTH_LONG).show()
             return
         }
 
         def data = new Intent()
-        data.putExtra("uri", uri)
+        data.putExtra("host", host)
         setResult(Activity.RESULT_OK, data)
         finish()
     }
 
-    private void testConnection(URI uri) {
-        def client = new WirelessPadClient(uri)
-        client.connectBlocking()
+    private boolean testConnection(String host) {
+        def mouse = new WebSocketMouse(host)
+        mouse.connect()
         try {
-            client.send("test")
+            return mouse.move(0, 0)
         } finally {
-            client.close()
+            mouse.disconnect()
         }
     }
 }

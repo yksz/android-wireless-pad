@@ -10,7 +10,8 @@ import android.view.View
 import android.widget.Toast
 import groovy.transform.CompileStatic
 import jp.android.wirelesspad.R
-import jp.android.wirelesspad.client.WirelessPadClient
+import jp.android.wirelesspad.remote.mouse.Mouse
+import jp.android.wirelesspad.remote.mouse.WebSocketMouse
 import jp.android.wirelesspad.ui.util.SystemUiHider
 
 /**
@@ -26,15 +27,15 @@ public class FullscreenActivity extends Activity {
      */
     private static final int HIDER_FLAGS = SystemUiHider.FLAG_HIDE_NAVIGATION
 
-    private static final int REQUEST_TEXT = 0;
+    private static final int REQUEST_TEXT = 0
 
     /**
      * The instance of the {@link SystemUiHider} for this activity.
      */
     private SystemUiHider mSystemUiHider
-    private MultiTouchGestureDetector mGestureDetector;
+    private MultiTouchGestureDetector mGestureDetector
 
-    private WirelessPadClient mClient
+    private Mouse mMouse
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +61,8 @@ public class FullscreenActivity extends Activity {
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
                 Log.d("Gesture", "onSingleTapUp: count=" + e.pointerCount)
-                if (mClient != null) {
-                    try {
-                        mClient.send("leftClick")
-                    } catch (ex) {
-                    }
+                if (mMouse != null) {
+                    mMouse.click(Mouse.ClickType.LEFT_CLICK)
                 }
                 return false
             }
@@ -72,31 +70,22 @@ public class FullscreenActivity extends Activity {
             @Override
             public boolean onMultiTapUp(MotionEvent e) {
                 Log.d("Gesture", "onMultiTapUp: count=" + e.pointerCount)
-                if (mClient != null) {
-                    try {
-                        mClient.send("rightClick")
-                    } catch (ex) {
-                    }
+                if (mMouse != null) {
+                    mMouse.click(Mouse.ClickType.RIGHT_CLICK)
                 }
                 return false
             }
 
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                if (mClient != null) {
+                if (mMouse != null) {
                     if (e2.pointerCount == 1) {
-                        int moveX = (distanceX + 0.5) as int
-                        int moveY = (distanceY + 0.5) as int
-                        try {
-                            mClient.send("move $moveX $moveY")
-                        } catch (ex) {
-                        }
+                        int x = (distanceX + 0.5) as int
+                        int y = (distanceY + 0.5) as int
+                        mMouse.move(x, y)
                     } else if (e2.pointerCount == 2) {
                         int amount = (distanceY * 2 + 0.5) as int
-                        try {
-                            mClient.send("scroll $amount")
-                        } catch (ex) {
-                        }
+                        mMouse.scroll(amount)
                     }
                 }
                 return false
@@ -110,20 +99,20 @@ public class FullscreenActivity extends Activity {
         if (mSystemUiHider.isVisible()) {
             mSystemUiHider.hide()
         }
-        if (mClient == null) {
+        if (mMouse == null) {
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show()
-        } else if (mClient.connection.isOpen()) {
+        } else if (mMouse.isConnected()) {
             Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
-        } else if (mClient.connection.isClosed()) {
-            mClient.connect()
+        } else {
+            mMouse.connect()
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy()
-        if (mClient != null) {
-            mClient.close()
+        if (mMouse != null) {
+            mMouse.disconnect()
         }
     }
 
@@ -151,7 +140,7 @@ public class FullscreenActivity extends Activity {
 
     public void onClickWiFiSettingsButton(View view) {
         def intent = new Intent(this, WiFiSettingsActivity.class)
-        startActivityForResult(intent, REQUEST_TEXT);
+        startActivityForResult(intent, REQUEST_TEXT)
     }
 
     public void onClickCloseButton(View view) {
@@ -161,16 +150,16 @@ public class FullscreenActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != RESULT_OK) {
-            return;
+            return
         }
         switch (requestCode) {
             case REQUEST_TEXT:
-                def uri = (URI) data.getSerializableExtra("uri")
-                if (uri != null) {
-                    mClient = new WirelessPadClient(uri)
-                    mClient.connect()
+                def host = (String) data.getSerializableExtra("host")
+                if (host != null) {
+                    mMouse = new WebSocketMouse(host)
+                    mMouse.connect()
                 }
-                break;
+                break
         }
     }
 }

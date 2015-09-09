@@ -20,9 +20,11 @@ public class WebSocketMouse implements Mouse {
         }
     }
 
-    private WebSocketClient mClient;
+    private final WebSocketClient mClient;
 
     public WebSocketMouse(String host) throws URISyntaxException {
+        if (host == null)
+            throw new NullPointerException("host must not be null");
         mClient = new WebSocketClientImpl(host);
     }
 
@@ -57,31 +59,31 @@ public class WebSocketMouse implements Mouse {
 
     @Override
     public boolean move(int x, int y) {
-        return send(mClient, "mv " + x + " " + y);
+        return send(Command.MOVE + Command.DELIMITER + x + Command.DELIMITER + y);
     }
 
     @Override
     public boolean scroll(int amount) {
-        return send(mClient, "sr " + amount);
+        return send(Command.SCROLL + Command.DELIMITER + amount);
     }
 
     @Override
     public boolean click(ClickType type) {
         switch (type) {
             case LEFT_CLICK:
-                return send(mClient, "lc");
+                return send(Command.LEFT_CLICK);
             case RIGHT_CLICK:
-                return send(mClient, "rc");
+                return send(Command.RIGHT_CLICK);
             case DOUBLE_CLICK:
-                return send(mClient, "dc");
+                return send(Command.DOUBLE_CLICK);
             default:
                 throw new AssertionError("Unknown type: " + type);
         }
     }
 
-    private boolean send(WebSocketClient client, String message) {
+    private boolean send(String message) {
         try {
-            client.send(message);
+            mClient.send(message);
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Send message: " + message, e);

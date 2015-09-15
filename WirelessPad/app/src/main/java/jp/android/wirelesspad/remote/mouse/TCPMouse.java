@@ -56,7 +56,7 @@ public class TCPMouse implements Mouse {
     }
 
     @Override
-    public boolean move(int x, int y) {
+    public boolean move(final int x, final int y) {
         if (!isConnected())
             throw new IllegalStateException("Not connected");
 
@@ -69,7 +69,7 @@ public class TCPMouse implements Mouse {
     }
 
     @Override
-    public boolean scroll(int amount) {
+    public boolean scroll(final int amount) {
         if (!isConnected())
             throw new IllegalStateException("Not connected");
 
@@ -82,7 +82,7 @@ public class TCPMouse implements Mouse {
     }
 
     @Override
-    public boolean click(ClickType type) {
+    public boolean click(final ClickType type) {
         if (!isConnected())
             throw new IllegalStateException("Not connected");
 

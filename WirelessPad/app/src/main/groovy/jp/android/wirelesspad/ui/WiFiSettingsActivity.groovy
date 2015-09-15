@@ -9,7 +9,7 @@ import android.widget.EditText
 import android.widget.Toast
 import groovy.transform.CompileStatic
 import jp.android.wirelesspad.R
-import jp.android.wirelesspad.remote.mouse.WebSocketMouse
+import jp.android.wirelesspad.remote.mouse.UDPMouse
 
 @CompileStatic
 public class WiFiSettingsActivity extends ActionBarActivity {
@@ -35,12 +35,13 @@ public class WiFiSettingsActivity extends ActionBarActivity {
     }
 
     private boolean testConnection(String host) {
-        def mouse = new WebSocketMouse(host)
-        mouse.connect()
-        try {
-            return mouse.move(0, 0)
-        } finally {
-            mouse.disconnect()
+        def mouse = new UDPMouse(host)
+        if (mouse.connect()) {
+            try {
+                return mouse.move(0, 0)
+            } finally {
+                mouse.disconnect()
+            }
         }
     }
 }

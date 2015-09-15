@@ -11,7 +11,7 @@ import android.widget.Toast
 import groovy.transform.CompileStatic
 import jp.android.wirelesspad.R
 import jp.android.wirelesspad.remote.mouse.Mouse
-import jp.android.wirelesspad.remote.mouse.WebSocketMouse
+import jp.android.wirelesspad.remote.mouse.UDPMouse
 import jp.android.wirelesspad.ui.util.SystemUiHider
 
 /**
@@ -156,7 +156,7 @@ public class FullscreenActivity extends Activity {
             case REQUEST_TEXT:
                 def host = (String) data.getSerializableExtra("host")
                 if (host != null) {
-                    mMouse = new WebSocketMouse(host)
+                    mMouse = new UDPMouse(host)
                     mMouse.connect()
                 }
                 break

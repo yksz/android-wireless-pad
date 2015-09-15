@@ -16,13 +16,14 @@ public class UDPMouse implements Mouse {
     private static final int PORT = 7681;
     private static final int MAX_THREAD_NUM = 3;
 
-    private DatagramSocket mSocket;
+    private final DatagramSocket mSocket;
     private final SocketAddress mAddress;
     private final ExecutorService mThreadPool;
 
-    public UDPMouse(String host) {
+    public UDPMouse(String host) throws SocketException {
         if (host == null)
             throw new NullPointerException("host must not be null");
+        mSocket = new DatagramSocket();
         mAddress = new InetSocketAddress(host, PORT);
         mThreadPool = Executors.newFixedThreadPool(MAX_THREAD_NUM);
     }
@@ -30,7 +31,7 @@ public class UDPMouse implements Mouse {
     @Override
     public boolean connect() {
         try {
-            mSocket = new DatagramSocket(mAddress);
+            mSocket.connect(mAddress);
             return true;
         } catch (SocketException e) {
             Log.e(TAG, "Connect", e);
@@ -40,22 +41,17 @@ public class UDPMouse implements Mouse {
 
     @Override
     public boolean disconnect() {
-        if (mSocket != null) {
-            mSocket.close();
-        }
+        mSocket.disconnect();
         return true;
     }
 
     @Override
     public boolean isConnected() {
-        if (mSocket != null) {
-            return mSocket.isConnected();
-        }
-        return false;
+        return mSocket.isConnected();
     }
 
     @Override
-    public boolean move(int x, int y) {
+    public boolean move(final int x, final int y) {
         if (!isConnected())
             throw new IllegalStateException("Not connected");
 
@@ -68,7 +64,7 @@ public class UDPMouse implements Mouse {
     }
 
     @Override
-    public boolean scroll(int amount) {
+    public boolean scroll(final int amount) {
         if (!isConnected())
             throw new IllegalStateException("Not connected");
 
@@ -81,7 +77,7 @@ public class UDPMouse implements Mouse {
     }
 
     @Override
-    public boolean click(ClickType type) {
+    public boolean click(final ClickType type) {
         if (!isConnected())
             throw new IllegalStateException("Not connected");
 
@@ -90,10 +86,13 @@ public class UDPMouse implements Mouse {
                 switch (type) {
                     case LEFT_CLICK:
                         send(Command.LEFT_CLICK);
+                        break;
                     case RIGHT_CLICK:
                         send(Command.RIGHT_CLICK);
+                        break;
                     case DOUBLE_CLICK:
                         send(Command.DOUBLE_CLICK);
+                        break;
                     default:
                         throw new AssertionError("Unknown type: " + type);
                 }
@@ -104,8 +103,8 @@ public class UDPMouse implements Mouse {
 
     private boolean send(String message) {
         byte[] data = message.getBytes();
-        DatagramPacket packet = new DatagramPacket(data, data.length);
         try {
+            DatagramPacket packet = new DatagramPacket(data, data.length, mAddress);
             mSocket.send(packet);
         } catch (IOException e) {
             Log.e(TAG, "Send message: " + message, e);

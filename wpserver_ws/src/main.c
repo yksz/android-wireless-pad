@@ -2,11 +2,37 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "libwebsockets.h"
+#include "logger.h"
+#include "mouse.h"
+
+static const int DEFAULT_PORT = 7681;
 
 static volatile bool force_exit = false;
 static struct libwebsocket_context* context;
+
+static int callback(struct libwebsocket_context* context,
+             struct libwebsocket* wsi,
+             enum libwebsocket_callback_reasons reason,
+             void* user,
+             void* in,
+             size_t len)
+{
+    switch (reason) {
+        case LWS_CALLBACK_ESTABLISHED:
+            break;
+        case LWS_CALLBACK_SERVER_WRITEABLE:
+            break;
+        case LWS_CALLBACK_RECEIVE:
+            mouse_execCommand(in, len);
+            break;
+        case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION:
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
 
 static struct libwebsocket_protocols protocols[] = {
         {
@@ -48,14 +74,12 @@ static bool startServer(int port)
 
 int main(int argc, char* argv[])
 {
-    int port = 7681;
+    logger_setLevel(LogLevel_DEBUG);
+
+    int port = DEFAULT_PORT;
     if (argc > 1) {
         int num = atoi(argv[1]);
         port = num ? num : port;
     }
-
-    if (!startServer(port)) {
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
+    return startServer(port) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -8,14 +8,16 @@
 
 static const int DEFAULT_PORT = 7681;
 
-static void receiveMessageFrom(SOCKET sock)
+static bool receiveMessageFrom(SOCKET sock)
 {
-    char msg[MOUSE_COMMAND_MAX_SIZE];
-    for (;;) {
-        memset(msg, 0, sizeof(msg));
-        recvfrom(sock, msg, sizeof(msg), 0, NULL, 0);
-        mouse_execCommand(msg, sizeof(msg));
+    char msg[MOUSE_COMMAND_MAX_SIZE] = {0};
+
+    if ((recvfrom(sock, msg, sizeof(msg), 0, NULL, NULL)) == -1) {
+        fprintf(stderr, "ERROR: recvfrom: %d\n", WSAGetLastError());
+        return false;
     }
+    mouse_execCommand(msg, sizeof(msg));
+    return true;
 }
 
 static bool startReceiver(int port)
@@ -45,7 +47,7 @@ static bool startReceiver(int port)
     }
 
     printf("Listening on port %d\n", port);
-    receiveMessageFrom(sock);
+    while (receiveMessageFrom(sock));
 
     closesocket(sock);
     WSACleanup();

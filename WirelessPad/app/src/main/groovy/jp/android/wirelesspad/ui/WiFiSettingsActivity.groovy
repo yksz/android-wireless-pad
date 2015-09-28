@@ -9,6 +9,8 @@ import android.widget.EditText
 import android.widget.Toast
 import groovy.transform.CompileStatic
 import jp.android.wirelesspad.R
+import jp.android.wirelesspad.remote.mouse.Mouse
+import jp.android.wirelesspad.remote.mouse.MouseFactory
 import jp.android.wirelesspad.remote.mouse.UDPMouse
 
 @CompileStatic
@@ -23,7 +25,8 @@ public class WiFiSettingsActivity extends ActionBarActivity {
         def editText = (EditText) findViewById(R.id.wifiSettings_host_editText)
         def host = editText.getText().toString()
 
-        if (!testConnection(host)) {
+        Mouse mouse = createMouse()
+        if (!mouse.checkConnection(host)) {
             Toast.makeText(this, "Connection failed", Toast.LENGTH_LONG).show()
             return
         }
@@ -34,14 +37,8 @@ public class WiFiSettingsActivity extends ActionBarActivity {
         finish()
     }
 
-    private boolean testConnection(String host) {
-        def mouse = new UDPMouse(host)
-        if (mouse.connect()) {
-            try {
-                return mouse.move(0, 0)
-            } finally {
-                mouse.disconnect()
-            }
-        }
+    private Mouse createMouse() {
+        MouseFactory.mouse = new UDPMouse()
+        return MouseFactory.mouse
     }
 }

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -17,35 +16,39 @@ public class TCPMouse implements Mouse {
     private static final int TIMEOUT = 2000; // 2 sec
 
     private final Socket mSocket;
-    private final SocketAddress mAddress;
     private final ExecutorService mThreadPool;
 
-    public TCPMouse(String host) {
-        if (host == null)
-            throw new NullPointerException("host must not be null");
+    public TCPMouse() {
         mSocket = new Socket();
-        mAddress = new InetSocketAddress(host, PORT);
         mThreadPool = Executors.newFixedThreadPool(MAX_THREAD_NUM);
     }
 
     @Override
-    public boolean connect() {
+    public boolean connect(String host) {
+        if (host == null)
+            throw new NullPointerException("host must not be null");
+        if (isConnected())
+            return true;
+
         try {
-            mSocket.connect(mAddress, TIMEOUT);
+            mSocket.connect(new InetSocketAddress(host, PORT), TIMEOUT);
             return true;
         } catch (IOException e) {
-            Log.e(TAG, "Connect", e);
+            Log.e(TAG, "connect: host=" + host, e);
             return false;
         }
     }
 
     @Override
     public boolean disconnect() {
+        if (!isConnected())
+            return true;
+
         try {
             mSocket.close();
             return true;
         } catch (IOException e) {
-            Log.e(TAG, "Disconnect", e);
+            Log.e(TAG, "disconnect", e);
             return false;
         }
     }
@@ -56,9 +59,19 @@ public class TCPMouse implements Mouse {
     }
 
     @Override
+    public boolean checkConnection(String host) {
+        try {
+            connect(host);
+            return send("test");
+        } finally {
+            disconnect();
+        }
+    }
+
+    @Override
     public boolean move(final int x, final int y) {
         if (!isConnected())
-            throw new IllegalStateException("Not connected");
+            return false;
 
         mThreadPool.execute(new Runnable() {
             public void run() {
@@ -71,7 +84,7 @@ public class TCPMouse implements Mouse {
     @Override
     public boolean scroll(final int amount) {
         if (!isConnected())
-            throw new IllegalStateException("Not connected");
+            return false;
 
         mThreadPool.execute(new Runnable() {
             public void run() {
@@ -84,7 +97,7 @@ public class TCPMouse implements Mouse {
     @Override
     public boolean click(final ClickType type) {
         if (!isConnected())
-            throw new IllegalStateException("Not connected");
+            return false;
 
         mThreadPool.execute(new Runnable() {
             public void run() {
@@ -108,10 +121,10 @@ public class TCPMouse implements Mouse {
         try {
             OutputStream out = mSocket.getOutputStream();
             out.write(data);
+            return true;
         } catch (IOException e) {
-            Log.e(TAG, "Send message: " + message, e);
+            Log.e(TAG, "send: message=" + message, e);
             return false;
         }
-        return true;
     }
 }

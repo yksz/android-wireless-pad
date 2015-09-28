@@ -16,44 +16,59 @@ public class UDPMouse implements Mouse {
     private static final int PORT = 7681;
     private static final int MAX_THREAD_NUM = 3;
 
-    private final DatagramSocket mSocket;
-    private final SocketAddress mAddress;
+    private SocketAddress mAddress;
+    private DatagramSocket mSocket;
     private final ExecutorService mThreadPool;
 
-    public UDPMouse(String host) throws SocketException {
-        if (host == null)
-            throw new NullPointerException("host must not be null");
-        mSocket = new DatagramSocket();
-        mAddress = new InetSocketAddress(host, PORT);
+    public UDPMouse() {
         mThreadPool = Executors.newFixedThreadPool(MAX_THREAD_NUM);
     }
 
     @Override
-    public boolean connect() {
+    public boolean connect(String host) {
+        if (host == null)
+            throw new NullPointerException("host must not be null");
+        if (isConnected())
+            return true;
+
+        mAddress = new InetSocketAddress(host, PORT);
         try {
-            mSocket.connect(mAddress);
+            mSocket = new DatagramSocket();
             return true;
         } catch (SocketException e) {
-            Log.e(TAG, "Connect", e);
+            Log.e(TAG, "connect: host=" + host, e);
             return false;
         }
     }
 
     @Override
     public boolean disconnect() {
-        mSocket.disconnect();
+        if (!isConnected())
+            return true;
+
+        mSocket = null;
         return true;
     }
 
     @Override
     public boolean isConnected() {
-        return mSocket.isConnected();
+        return mSocket != null;
+    }
+
+    @Override
+    public boolean checkConnection(String host) {
+        try {
+            connect(host);
+            return send("test");
+        } finally {
+            disconnect();
+        }
     }
 
     @Override
     public boolean move(final int x, final int y) {
         if (!isConnected())
-            throw new IllegalStateException("Not connected");
+            return false;
 
         mThreadPool.execute(new Runnable() {
             public void run() {
@@ -66,7 +81,7 @@ public class UDPMouse implements Mouse {
     @Override
     public boolean scroll(final int amount) {
         if (!isConnected())
-            throw new IllegalStateException("Not connected");
+            return false;
 
         mThreadPool.execute(new Runnable() {
             public void run() {
@@ -79,7 +94,7 @@ public class UDPMouse implements Mouse {
     @Override
     public boolean click(final ClickType type) {
         if (!isConnected())
-            throw new IllegalStateException("Not connected");
+            return false;
 
         mThreadPool.execute(new Runnable() {
             public void run() {
@@ -106,10 +121,10 @@ public class UDPMouse implements Mouse {
         try {
             DatagramPacket packet = new DatagramPacket(data, data.length, mAddress);
             mSocket.send(packet);
+            return true;
         } catch (IOException e) {
-            Log.e(TAG, "Send message: " + message, e);
+            Log.e(TAG, "send: message=" + message, e);
             return false;
         }
-        return true;
     }
 }

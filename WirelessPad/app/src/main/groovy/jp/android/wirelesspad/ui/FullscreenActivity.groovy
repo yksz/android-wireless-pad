@@ -11,7 +11,7 @@ import android.widget.Toast
 import groovy.transform.CompileStatic
 import jp.android.wirelesspad.R
 import jp.android.wirelesspad.remote.mouse.Mouse
-import jp.android.wirelesspad.remote.mouse.UDPMouse
+import jp.android.wirelesspad.remote.mouse.MouseFactory
 import jp.android.wirelesspad.ui.util.SystemUiHider
 
 /**
@@ -34,8 +34,6 @@ public class FullscreenActivity extends Activity {
      */
     private SystemUiHider mSystemUiHider
     private MultiTouchGestureDetector mGestureDetector
-
-    private Mouse mMouse
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,32 +59,26 @@ public class FullscreenActivity extends Activity {
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
                 Log.d("Gesture", "onSingleTapUp: count=" + e.pointerCount)
-                if (mMouse != null) {
-                    mMouse.click(Mouse.ClickType.LEFT_CLICK)
-                }
+                MouseFactory.mouse.click(Mouse.ClickType.LEFT_CLICK)
                 return false
             }
 
             @Override
             public boolean onMultiTapUp(MotionEvent e) {
                 Log.d("Gesture", "onMultiTapUp: count=" + e.pointerCount)
-                if (mMouse != null) {
-                    mMouse.click(Mouse.ClickType.RIGHT_CLICK)
-                }
+                MouseFactory.mouse.click(Mouse.ClickType.RIGHT_CLICK)
                 return false
             }
 
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                if (mMouse != null) {
-                    if (e2.pointerCount == 1) {
-                        int x = (distanceX + 0.5) as int
-                        int y = (distanceY + 0.5) as int
-                        mMouse.move(x, y)
-                    } else if (e2.pointerCount == 2) {
-                        int amount = (distanceY * 2 + 0.5) as int
-                        mMouse.scroll(amount)
-                    }
+                if (e2.pointerCount == 1) {
+                    int x = (distanceX + 0.5) as int
+                    int y = (distanceY + 0.5) as int
+                    MouseFactory.mouse.move(x, y)
+                } else if (e2.pointerCount == 2) {
+                    int amount = (distanceY * 2 + 0.5) as int
+                    MouseFactory.mouse.scroll(amount)
                 }
                 return false
             }
@@ -99,21 +91,18 @@ public class FullscreenActivity extends Activity {
         if (mSystemUiHider.isVisible()) {
             mSystemUiHider.hide()
         }
-        if (mMouse == null) {
-            Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show()
-        } else if (mMouse.isConnected()) {
+
+        if (MouseFactory.mouse.isConnected()) {
             Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
         } else {
-            mMouse.connect()
+            Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show()
         }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy()
-        if (mMouse != null) {
-            mMouse.disconnect()
-        }
+        MouseFactory.mouse.disconnect()
     }
 
     @Override
@@ -156,8 +145,7 @@ public class FullscreenActivity extends Activity {
             case REQUEST_TEXT:
                 def host = (String) data.getSerializableExtra("host")
                 if (host != null) {
-                    mMouse = new UDPMouse(host)
-                    mMouse.connect()
+                    MouseFactory.mouse.connect(host)
                 }
                 break
         }

@@ -20,55 +20,81 @@ public class WebSocketMouse implements Mouse {
         }
     }
 
-    private final WebSocketClient mClient;
-
-    public WebSocketMouse(String host) throws URISyntaxException {
-        if (host == null)
-            throw new NullPointerException("host must not be null");
-        mClient = new WebSocketClientImpl(host);
-    }
+    private WebSocketClient mClient;
 
     @Override
-    public boolean connect() {
+    public boolean connect(String host) {
+        if (host == null)
+            throw new NullPointerException("host must not be null");
+        if (isConnected())
+            return true;
+
         try {
+            mClient = new WebSocketClientImpl(host);
             mClient.connectBlocking();
             return true;
         } catch (InterruptedException ignore) {
             Thread.currentThread().interrupt();
             return false;
         } catch (Exception e) {
-            Log.e(TAG, "connect", e);
+            Log.e(TAG, "connect: host=" + host, e);
             return false;
         }
     }
 
     @Override
     public boolean disconnect() {
+        if (!isConnected())
+            return true;
+
         try {
             mClient.close();
+            return true;
         } catch (Exception e) {
             Log.e(TAG, "disconnect", e);
+            return false;
         }
-        return true;
     }
 
     @Override
     public boolean isConnected() {
+        if (mClient == null) {
+            return false;
+        }
         return mClient.getConnection().isOpen();
     }
 
     @Override
+    public boolean checkConnection(String host) {
+        try {
+            connect(host);
+            return send("test");
+        } finally {
+            disconnect();
+        }
+    }
+
+    @Override
     public boolean move(int x, int y) {
+        if (!isConnected())
+            return false;
+
         return send(Command.MOVE + Command.DELIMITER + x + Command.DELIMITER + y);
     }
 
     @Override
     public boolean scroll(int amount) {
+        if (!isConnected())
+            return false;
+
         return send(Command.SCROLL + Command.DELIMITER + amount);
     }
 
     @Override
     public boolean click(ClickType type) {
+        if (!isConnected())
+            return false;
+
         switch (type) {
             case LEFT_CLICK:
                 return send(Command.LEFT_CLICK);
@@ -86,7 +112,7 @@ public class WebSocketMouse implements Mouse {
             mClient.send(message);
             return true;
         } catch (Exception e) {
-            Log.e(TAG, "Send message: " + message, e);
+            Log.e(TAG, "send: message=" + message, e);
             return false;
         }
     }

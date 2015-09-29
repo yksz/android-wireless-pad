@@ -26,12 +26,15 @@ public class WebSocketMouse implements Mouse {
     public boolean connect(String host) {
         if (host == null)
             throw new NullPointerException("host must not be null");
-        if (isConnected())
+        if (isConnecting()) {
+            Log.d(TAG, "Already connected");
             return true;
+        }
 
         try {
             mClient = new WebSocketClientImpl(host);
             mClient.connectBlocking();
+            Log.d(TAG, "connect: host=" + host);
             return true;
         } catch (InterruptedException ignore) {
             Thread.currentThread().interrupt();
@@ -44,12 +47,15 @@ public class WebSocketMouse implements Mouse {
 
     @Override
     public boolean disconnect() {
-        if (!isConnected())
+        if (!isConnecting()) {
+            Log.d(TAG, "Already disconnected");
             return true;
+        }
 
         try {
             mClient.close();
             mClient = null;
+            Log.d(TAG, "disconnect");
             return true;
         } catch (Exception e) {
             Log.e(TAG, "disconnect", e);
@@ -58,7 +64,7 @@ public class WebSocketMouse implements Mouse {
     }
 
     @Override
-    public boolean isConnected() {
+    public boolean isConnecting() {
         if (mClient == null) {
             return false;
         }
@@ -77,7 +83,7 @@ public class WebSocketMouse implements Mouse {
 
     @Override
     public boolean move(int x, int y) {
-        if (!isConnected())
+        if (!isConnecting())
             return false;
 
         return send(Command.MOVE + Command.DELIMITER + x + Command.DELIMITER + y);
@@ -85,7 +91,7 @@ public class WebSocketMouse implements Mouse {
 
     @Override
     public boolean scroll(int amount) {
-        if (!isConnected())
+        if (!isConnecting())
             return false;
 
         return send(Command.SCROLL + Command.DELIMITER + amount);
@@ -93,7 +99,7 @@ public class WebSocketMouse implements Mouse {
 
     @Override
     public boolean click(ClickType type) {
-        if (!isConnected())
+        if (!isConnecting())
             return false;
 
         switch (type) {

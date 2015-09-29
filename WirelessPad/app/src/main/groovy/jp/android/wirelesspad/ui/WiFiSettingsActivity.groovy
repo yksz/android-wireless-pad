@@ -35,7 +35,7 @@ public class WiFiSettingsActivity extends ActionBarActivity {
     public void onClickConnectButton(View view) {
         def mouse = createMouse()
         def host = mEditText.text.toString()
-        Log.d(TAG, "host=${host}")
+        Log.d(TAG, "onClickConnectButton: host=${host}")
         if (!mouse.checkConnection(host)) {
             Toast.makeText(this, "Connection failed", Toast.LENGTH_LONG).show()
             return

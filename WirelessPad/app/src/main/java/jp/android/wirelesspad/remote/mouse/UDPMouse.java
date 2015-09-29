@@ -28,12 +28,15 @@ public class UDPMouse implements Mouse {
     public boolean connect(String host) {
         if (host == null)
             throw new NullPointerException("host must not be null");
-        if (isConnected())
+        if (isConnecting()) {
+            Log.d(TAG, "Already connected");
             return true;
+        }
 
         mAddress = new InetSocketAddress(host, PORT);
         try {
             mSocket = new DatagramSocket();
+            Log.d(TAG, "connect: host=" + host);
             return true;
         } catch (SocketException e) {
             Log.e(TAG, "connect: host=" + host, e);
@@ -43,15 +46,18 @@ public class UDPMouse implements Mouse {
 
     @Override
     public boolean disconnect() {
-        if (!isConnected())
+        if (!isConnecting()) {
+            Log.d(TAG, "Already disconnected");
             return true;
+        }
 
         mSocket = null;
+        Log.d(TAG, "disconnect");
         return true;
     }
 
     @Override
-    public boolean isConnected() {
+    public boolean isConnecting() {
         return mSocket != null;
     }
 
@@ -67,7 +73,7 @@ public class UDPMouse implements Mouse {
 
     @Override
     public boolean move(final int x, final int y) {
-        if (!isConnected())
+        if (!isConnecting())
             return false;
 
         mThreadPool.execute(new Runnable() {
@@ -80,7 +86,7 @@ public class UDPMouse implements Mouse {
 
     @Override
     public boolean scroll(final int amount) {
-        if (!isConnected())
+        if (!isConnecting())
             return false;
 
         mThreadPool.execute(new Runnable() {
@@ -93,7 +99,7 @@ public class UDPMouse implements Mouse {
 
     @Override
     public boolean click(final ClickType type) {
-        if (!isConnected())
+        if (!isConnecting())
             return false;
 
         mThreadPool.execute(new Runnable() {
@@ -101,13 +107,13 @@ public class UDPMouse implements Mouse {
                 switch (type) {
                     case LEFT_CLICK:
                         send(Command.LEFT_CLICK);
-                        break;
+                        return;
                     case RIGHT_CLICK:
                         send(Command.RIGHT_CLICK);
-                        break;
+                        return;
                     case DOUBLE_CLICK:
                         send(Command.DOUBLE_CLICK);
-                        break;
+                        return;
                     default:
                         throw new AssertionError("Unknown type: " + type);
                 }

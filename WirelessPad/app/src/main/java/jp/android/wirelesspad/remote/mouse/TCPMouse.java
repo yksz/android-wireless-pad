@@ -15,11 +15,10 @@ public class TCPMouse implements Mouse {
     private static final int MAX_THREAD_NUM = 3;
     private static final int TIMEOUT = 2000; // 2 sec
 
-    private final Socket mSocket;
+    private Socket mSocket;
     private final ExecutorService mThreadPool;
 
     public TCPMouse() {
-        mSocket = new Socket();
         mThreadPool = Executors.newFixedThreadPool(MAX_THREAD_NUM);
     }
 
@@ -27,11 +26,15 @@ public class TCPMouse implements Mouse {
     public boolean connect(String host) {
         if (host == null)
             throw new NullPointerException("host must not be null");
-        if (isConnected())
+        if (isConnecting()) {
+            Log.d(TAG, "Already connected");
             return true;
+        }
 
         try {
+            mSocket = new Socket();
             mSocket.connect(new InetSocketAddress(host, PORT), TIMEOUT);
+            Log.d(TAG, "connect: host=" + host);
             return true;
         } catch (IOException e) {
             Log.e(TAG, "connect: host=" + host, e);
@@ -41,11 +44,14 @@ public class TCPMouse implements Mouse {
 
     @Override
     public boolean disconnect() {
-        if (!isConnected())
+        if (!isConnecting()) {
+            Log.d(TAG, "Already disconnected");
             return true;
+        }
 
         try {
             mSocket.close();
+            Log.d(TAG, "disconnect");
             return true;
         } catch (IOException e) {
             Log.e(TAG, "disconnect", e);
@@ -54,8 +60,11 @@ public class TCPMouse implements Mouse {
     }
 
     @Override
-    public boolean isConnected() {
-        return mSocket.isConnected();
+    public boolean isConnecting() {
+        if (mSocket == null) {
+            return false;
+        }
+        return mSocket.isConnected() && !mSocket.isClosed();
     }
 
     @Override
@@ -70,7 +79,7 @@ public class TCPMouse implements Mouse {
 
     @Override
     public boolean move(final int x, final int y) {
-        if (!isConnected())
+        if (!isConnecting())
             return false;
 
         mThreadPool.execute(new Runnable() {
@@ -83,7 +92,7 @@ public class TCPMouse implements Mouse {
 
     @Override
     public boolean scroll(final int amount) {
-        if (!isConnected())
+        if (!isConnecting())
             return false;
 
         mThreadPool.execute(new Runnable() {
@@ -96,7 +105,7 @@ public class TCPMouse implements Mouse {
 
     @Override
     public boolean click(final ClickType type) {
-        if (!isConnected())
+        if (!isConnecting())
             return false;
 
         mThreadPool.execute(new Runnable() {
@@ -104,10 +113,13 @@ public class TCPMouse implements Mouse {
                 switch (type) {
                     case LEFT_CLICK:
                         send(Command.LEFT_CLICK);
+                        return;
                     case RIGHT_CLICK:
                         send(Command.RIGHT_CLICK);
+                        return;
                     case DOUBLE_CLICK:
                         send(Command.DOUBLE_CLICK);
+                        return;
                     default:
                         throw new AssertionError("Unknown type: " + type);
                 }
@@ -121,6 +133,7 @@ public class TCPMouse implements Mouse {
         try {
             OutputStream out = mSocket.getOutputStream();
             out.write(data);
+            out.flush();
             return true;
         } catch (IOException e) {
             Log.e(TAG, "send: message=" + message, e);

@@ -12,7 +12,7 @@ public class NullMouse implements Mouse {
     }
 
     @Override
-    public boolean isConnected() {
+    public boolean isConnecting() {
         return false;
     }
 

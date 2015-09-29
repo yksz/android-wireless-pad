@@ -11,7 +11,7 @@ public interface Mouse {
 
     boolean connect(String host);
     boolean disconnect();
-    boolean isConnected();
+    boolean isConnecting();
     boolean checkConnection(String host);
     boolean move(int x, int y);
     boolean scroll(int amount);

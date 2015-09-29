@@ -55,6 +55,7 @@
                 android:onClick="onClickCloseButton" />
 
         </LinearLayout>
+
     </FrameLayout>
 
 </FrameLayout>

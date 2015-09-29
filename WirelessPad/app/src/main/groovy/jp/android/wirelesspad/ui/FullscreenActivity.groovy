@@ -92,7 +92,7 @@ public class FullscreenActivity extends Activity {
             mSystemUiHider.hide()
         }
 
-        if (MouseFactory.mouse.isConnected()) {
+        if (MouseFactory.mouse.isConnecting()) {
             Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(this, "Not connected", Toast.LENGTH_SHORT).show()

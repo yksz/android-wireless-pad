@@ -58,14 +58,14 @@ public class FullscreenActivity extends Activity {
         return new MultiTouchGestureDetector(this, new MultiTouchGestureDetector.OnGestureListener() {
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
-                Log.d("Gesture", "onSingleTapUp: count=" + e.pointerCount)
+                Log.d("Gesture", "onSingleTapUp: pointerCount=${e.pointerCount}")
                 MouseFactory.mouse.click(Mouse.ClickType.LEFT_CLICK)
                 return false
             }
 
             @Override
             public boolean onMultiTapUp(MotionEvent e) {
-                Log.d("Gesture", "onMultiTapUp: count=" + e.pointerCount)
+                Log.d("Gesture", "onMultiTapUp: pointerCount=${e.pointerCount}")
                 MouseFactory.mouse.click(Mouse.ClickType.RIGHT_CLICK)
                 return false
             }

@@ -11,6 +11,9 @@
     <string name="bluetoothSettings_discover_menu">Discover devices</string>
 
     <string name="wifiSettings_title">Wi-Fi Settings</string>
+    <string name="wifiSettings_tcp_radioButton">TCP</string>
+    <string name="wifiSettings_udp_radioButton">UDP</string>
+    <string name="wifiSettings_webSocket_radioButton">WebSocket</string>
     <string name="wifiSettings_host_editText_hint">Enter host name</string>
     <string name="wifiSettings_connect_button">Connect</string>
 </resources>

@@ -5,6 +5,30 @@
     android:layout_height="match_parent"
     tools:context="jp.android.wirelesspad.ui.WiFiSettingsActivity">
 
+    <RadioGroup
+        android:id="@+id/wifiSettings_connectionType_radioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:checkedButton="@+id/wifiSettings_udp_radioButton">
+
+        <RadioButton android:id="@+id/wifiSettings_tcp_radioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/wifiSettings_tcp_radioButton" />
+
+        <RadioButton android:id="@+id/wifiSettings_udp_radioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/wifiSettings_udp_radioButton" />
+
+        <RadioButton android:id="@+id/wifiSettings_webSocket_radioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/wifiSettings_webSocket_radioButton" />
+
+    </RadioGroup>
+
     <EditText
         android:id="@+id/wifiSettings_host_editText"
         android:layout_width="match_parent"

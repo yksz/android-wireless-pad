@@ -49,6 +49,7 @@ public class WebSocketMouse implements Mouse {
 
         try {
             mClient.close();
+            mClient = null;
             return true;
         } catch (Exception e) {
             Log.e(TAG, "disconnect", e);

@@ -111,7 +111,7 @@ static bool startServer(int port)
 
 int main(int argc, char** argv)
 {
-    logger_setLevel(LogLevel_DEBUG);
+    logger_setLevel(LogLevel_TRACE);
 
     int port = DEFAULT_PORT;
     if (argc > 1) {

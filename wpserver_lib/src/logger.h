@@ -5,6 +5,7 @@
 
 typedef enum
 {
+    LogLevel_TRACE,
     LogLevel_DEBUG,
     LogLevel_INFO,
     LogLevel_WARN,
@@ -19,6 +20,7 @@ typedef enum
 #define __FILENAME__ __FILE__
 #endif
 
+#define LOGGER_TRACE(fmt, ...) logger_write(LogLevel_TRACE, stderr, __FILENAME__, __LINE__, __func__, fmt, ## __VA_ARGS__)
 #define LOGGER_DEBUG(fmt, ...) logger_write(LogLevel_DEBUG, stderr, __FILENAME__, __LINE__, __func__, fmt, ## __VA_ARGS__)
 #define LOGGER_INFO (fmt, ...) logger_write(LogLevel_INFO , stderr, __FILENAME__, __LINE__, __func__, fmt, ## __VA_ARGS__)
 #define LOGGER_WARN (fmt, ...) logger_write(LogLevel_WARN , stderr, __FILENAME__, __LINE__, __func__, fmt, ## __VA_ARGS__)

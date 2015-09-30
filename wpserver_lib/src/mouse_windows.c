@@ -68,6 +68,7 @@ void mouse_execCommand(char* cmd, size_t len)
     } else if (strncmp(tok, "dc", len) == 0) {
         doubleClick();
     } else {
+        LOGGER_TRACE("%s\n", tok);
         return;
     }
 }

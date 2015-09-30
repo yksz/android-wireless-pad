@@ -17,6 +17,9 @@ void logger_write(LogLevel level, FILE* fp, const char* file, int line, const ch
     strftime(time, sizeof(time), "%Y/%m/%d %H:%M:%S", localtime(&timer));
 
     switch (level) {
+        case LogLevel_TRACE:
+            fprintf(fp, "%s TRACE %s:%d:%s: ", time, file, line, func);
+            break;
         case LogLevel_DEBUG:
             fprintf(fp, "%s DEBUG %s:%d:%s: ", time, file, line, func);
             break;

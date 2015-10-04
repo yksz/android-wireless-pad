@@ -14,6 +14,7 @@ public class TCPMouse implements Mouse {
     private static final int PORT = 7681;
     private static final int MAX_THREAD_NUM = 3;
     private static final int TIMEOUT = 2000; // 2 sec
+    private static final String COMMAND_END = "\n";
 
     private Socket mSocket;
     private final ExecutorService mThreadPool;
@@ -129,7 +130,7 @@ public class TCPMouse implements Mouse {
     }
 
     private boolean send(String message) {
-        byte[] data = message.getBytes();
+        byte[] data = (message + COMMAND_END).getBytes();
         try {
             OutputStream out = mSocket.getOutputStream();
             out.write(data);
@@ -137,6 +138,7 @@ public class TCPMouse implements Mouse {
             return true;
         } catch (IOException e) {
             Log.e(TAG, "send: message=" + message, e);
+            disconnect();
             return false;
         }
     }

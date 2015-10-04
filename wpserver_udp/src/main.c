@@ -3,6 +3,7 @@
 #include <winsock2.h>
 #include "logger.h"
 #include "mouse.h"
+#include "networks.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -46,7 +47,9 @@ static bool startReceiver(int port)
         return false;
     }
 
-    printf("Listening on port %d\n", port);
+    char ip[20];
+    networks_getLocalIPv4(ip, sizeof(ip));
+    printf("Listening on IP address %s, port %d\n", ip, port);
     while (receiveMessageFrom(sock));
 
     closesocket(sock);

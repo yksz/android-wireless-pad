@@ -5,5 +5,5 @@ if not exist build (
 )
 cd build
 
-cmake -DLWS_WITH_SSL:BOOL=OFF -G "Visual Studio 14" ..
+cmake -G "Visual Studio 14" -DLWS_WITH_SSL=OFF ..
 pause

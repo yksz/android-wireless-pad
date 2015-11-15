@@ -37,7 +37,7 @@ static int receiveLine(SOCKET sock, char* buf, size_t buf_size)
 static bool receiveMessageFrom(SOCKET client_sock)
 {
     char msg[MOUSE_COMMAND_MAX_SIZE] = {0};
-    if (receiveLine(client_sock, msg, sizeof(msg))) {
+    if (receiveLine(client_sock, msg, sizeof(msg)) > 0) {
         mouse_execCommand(msg, sizeof(msg));
         return true;
     } else {

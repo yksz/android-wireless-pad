@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8.4)
 project(wpserver C)
 
-set(CMAKE_C_FLAGS "-Wall -std=c99")
-set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS "-Wall")
 
 add_subdirectory(lib)
 add_subdirectory(tcp)

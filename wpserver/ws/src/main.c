@@ -1,22 +1,21 @@
 #include <signal.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "libwebsockets.h"
 #include "logger.h"
 #include "mouse.h"
 
-static const int DEFAULT_PORT = 7681;
+static const int kDefaultPort = 7681;
 
-static volatile bool force_exit = false;
+static volatile int forceExit = 0;
 static struct libwebsocket_context* context;
 
 static int callback(struct libwebsocket_context* context,
-             struct libwebsocket* wsi,
-             enum libwebsocket_callback_reasons reason,
-             void* user,
-             void* in,
-             size_t len)
+        struct libwebsocket* wsi,
+        enum libwebsocket_callback_reasons reason,
+        void* user,
+        void* in,
+        size_t len)
 {
     switch (reason) {
         case LWS_CALLBACK_ESTABLISHED:
@@ -46,13 +45,15 @@ static struct libwebsocket_protocols protocols[] = {
 
 static void sighandler(int sig)
 {
-    force_exit = true;
+    forceExit = 1;
     libwebsocket_cancel_service(context);
 }
 
-static bool startServer(int port)
+static int startServer(int port)
 {
     struct lws_context_creation_info info = {0};
+    int n;
+
     info.port = port;
     info.protocols = protocols;
     info.gid = -1;
@@ -60,26 +61,33 @@ static bool startServer(int port)
     context = libwebsocket_create_context(&info);
     if (context == NULL) {
         lwsl_err("libwebsocket init failed\n");
-        return false;
+        return -1;
     }
 
     signal(SIGINT, sighandler);
 
-    for (int n = 0; n >= 0 && !force_exit;) {
+    for (n = 0; n >= 0 && forceExit == 0;) {
         n = libwebsocket_service(context, 50);
     }
     libwebsocket_context_destroy(context);
-    return true;
+    return 0;
+}
+
+static int getAsInt(char* str, int defaultValue)
+{
+    int i = atoi(str);
+    return i != 0 ? i : defaultValue;
 }
 
 int main(int argc, char* argv[])
 {
+    int port = kDefaultPort;
+    if (argc > 1) {
+        port = getAsInt(argv[1], port);
+    }
+
+    logger_initConsoleLogger(stderr);
     logger_setLevel(LogLevel_DEBUG);
 
-    int port = DEFAULT_PORT;
-    if (argc > 1) {
-        int num = atoi(argv[1]);
-        port = num ? num : port;
-    }
-    return startServer(port) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return startServer(port);
 }

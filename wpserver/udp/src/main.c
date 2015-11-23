@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include <stdio.h>
 #include <winsock2.h>
 #include "logger.h"
@@ -7,64 +6,80 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-static const int DEFAULT_PORT = 7681;
+static const int kDefaultPort = 7681;
 
-static bool receiveMessageFrom(SOCKET sock)
+static int receiveCommand(SOCKET* sock)
 {
     char msg[MOUSE_COMMAND_MAX_SIZE] = {0};
 
-    if ((recvfrom(sock, msg, sizeof(msg), 0, NULL, NULL)) == -1) {
-        fprintf(stderr, "ERROR: recvfrom: %d\n", WSAGetLastError());
-        return false;
+    if ((recvfrom(*sock, msg, sizeof(msg), 0, NULL, NULL)) == -1) {
+        LOG_ERROR("recvfrom: %d", WSAGetLastError());
+        return -1;
     }
     mouse_execCommand(msg, sizeof(msg));
-    return true;
+    return 0;
 }
 
-static bool startReceiver(int port)
+static int createServerSocket(SOCKET* sock, int port)
+{
+    struct sockaddr_in serverAddr;
+
+    *sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (*sock == INVALID_SOCKET) {
+        LOG_ERROR("socket: %d", WSAGetLastError());
+        return -1;
+    }
+
+    memset(&serverAddr, 0, sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
+
+    if (bind(*sock, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        LOG_ERROR("bind: %d", WSAGetLastError());
+        return -1;
+    }
+    return 0;
+}
+
+static int startServer(int port)
 {
     WSADATA data;
     SOCKET sock;
-    struct sockaddr_in recv_addr;
+    char ip[20];
 
     if (WSAStartup(MAKEWORD(2, 0), &data) != 0) {
-        fprintf(stderr, "ERROR: WSAStartup: %d\n", WSAGetLastError());
-        return false;
+        LOG_ERROR("WSAStartup: %d", WSAGetLastError());
+        return -1;
     }
-
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock == INVALID_SOCKET) {
-        fprintf(stderr, "ERROR: socket: %d\n", WSAGetLastError());
-        return false;
+    if (createServerSocket(&sock, port) != 0) {
+        return -1;
     }
-
-    memset(&recv_addr, 0, sizeof(recv_addr));
-    recv_addr.sin_family = AF_INET;
-    recv_addr.sin_port = htons(port);
-    recv_addr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-    if (bind(sock, (struct sockaddr*) &recv_addr, sizeof(recv_addr)) == SOCKET_ERROR) {
-        fprintf(stderr, "ERROR: bind: %d\n", WSAGetLastError());
-        return false;
-    }
-
-    char ip[20];
     networks_getLocalIPv4(ip, sizeof(ip));
-    printf("Listening on IP address %s, port %d\n", ip, port);
-    while (receiveMessageFrom(sock));
+    LOG_INFO("Listening on IP address %s, port %d", ip, port);
+
+    while (receiveCommand(&sock) == 0);
 
     closesocket(sock);
     WSACleanup();
-    return true;
+    return 0;
+}
+
+static int getAsInt(char* str, int defaultValue)
+{
+    int i = atoi(str);
+    return i != 0 ? i : defaultValue;
 }
 
 int main(int argc, char* argv[])
 {
+    int port = kDefaultPort;
+    if (argc > 1) {
+        port = getAsInt(argv[1], port);
+    }
+
+    logger_initConsoleLogger(stderr);
     logger_setLevel(LogLevel_DEBUG);
 
-    int port = DEFAULT_PORT;
-    if (argc > 1) {
-        int num = atoi(argv[1]);
-        port = num ? num : port;
-    }
-    return startReceiver(port) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return startServer(port);
 }

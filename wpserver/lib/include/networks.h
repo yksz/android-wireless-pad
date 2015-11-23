@@ -3,6 +3,6 @@
 
 #include <stddef.h>
 
-void networks_getLocalIPv4(char* addr_str, size_t len);
+void networks_getLocalIPv4(char* localAddr, size_t len);
 
 #endif /* NETWORKS_H */

@@ -9,36 +9,35 @@
 static const int kDefaultPort = 7681;
 static const int kQueueSize = 5;
 
-static int receiveLine(SOCKET* sock, char* buf, size_t bufsize)
+static int receiveLine(SOCKET sock, char* buf, int bufsize)
 {
-    int totalsize = 0;
     int recvsize;
+    int offset = 0;
 
-    while ((recvsize = recv(*sock, buf, 1, 0)) > 0) { // 1byte by 1byte
-        totalsize += recvsize;
-        if (bufsize - 1 <= 1) { // max size
-            buf[recvsize] = '\0';
+    while ((recvsize = recv(sock, &buf[offset], 1, 0)) > 0) { // 1byte by 1byte
+        offset += recvsize;
+        if (offset >= bufsize - 1) { // max size
+            buf[bufsize - 1] = '\0';
             break;
         }
-        if (buf[0] == '\n') { // line feed
-            buf[0] = '\0';
+        if (buf[offset - 1] == '\n') { // line feed
+            buf[offset - 1] = '\0';
             break;
         }
-        buf = &buf[recvsize];
-        bufsize -= recvsize;
     }
     if (recvsize == -1) {
         LOG_ERROR("recv: %d", WSAGetLastError());
         return -1;
     }
-    return totalsize;
+    LOG_TRACE("size=%d", offset);
+    return offset;
 }
 
-static int receiveCommand(SOCKET* clientSock)
+static int receiveCommand(SOCKET sock)
 {
     char msg[MOUSE_COMMAND_MAX_SIZE] = {0};
 
-    if (receiveLine(clientSock, msg, sizeof(msg)) > 0) {
+    if (receiveLine(sock, msg, sizeof(msg)) > 0) {
         mouse_execCommand(msg, sizeof(msg));
         return 0;
     } else {
@@ -46,21 +45,21 @@ static int receiveCommand(SOCKET* clientSock)
     }
 }
 
-static int acceptClient(SOCKET* serverSock)
+static int acceptClient(SOCKET serverSock)
 {
     struct sockaddr_in clientAddr;
     int len;
     SOCKET clientSock;
 
     len = sizeof(clientAddr);
-    clientSock = accept(*serverSock, (struct sockaddr*) &clientAddr, &len);
+    clientSock = accept(serverSock, (struct sockaddr*) &clientAddr, &len);
     if (clientSock == INVALID_SOCKET) {
         LOG_ERROR("accept: %d", WSAGetLastError());
         return -1;
     }
     LOG_INFO("%s connected", inet_ntoa(clientAddr.sin_addr));
 
-    while (receiveCommand(&clientSock) == 0);
+    while (receiveCommand(clientSock) == 0);
 
     closesocket(clientSock);
     return 0;
@@ -78,7 +77,7 @@ static int createServerSocket(SOCKET* sock, int port, int queueSize)
     }
 
     soval = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &soval, sizeof(soval));
+    setsockopt(*sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &soval, sizeof(soval));
 
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
@@ -114,7 +113,7 @@ static int startServer(int port)
     LOG_INFO("Listening on IP address %s, port %d", ip, port);
 
     for (;;) {
-        acceptClient(&sock);
+        acceptClient(sock);
     }
 
     closesocket(sock);

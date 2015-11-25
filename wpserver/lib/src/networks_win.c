@@ -6,8 +6,8 @@
 void networks_getLocalIPv4(char* localAddr, size_t len)
 {
     const char* unknownAddr = "unknown";
-    struct hostent* hosts;
     char hostname[64];
+    struct hostent* hosts;
     struct in_addr addr;
 
     if (gethostname(hostname, sizeof(hostname)) != 0) {

@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "libwebsockets.h"
@@ -7,7 +8,7 @@
 
 static const int kDefaultPort = 7681;
 
-static volatile int forceExit = 0;
+static volatile bool forceExit = false;
 static struct libwebsocket_context* context;
 
 static int callback(struct libwebsocket_context* context,
@@ -40,20 +41,18 @@ static struct libwebsocket_protocols protocols[] = {
             0, // per_session_data_size
             64, // max frame size / rx buffer
         },
-        {NULL, NULL, 0, 0} // terminator
+        { NULL, NULL, 0, 0 } // terminator
 };
 
 static void sighandler(int sig)
 {
-    forceExit = 1;
+    forceExit = true;
     libwebsocket_cancel_service(context);
 }
 
 static int startServer(int port)
 {
     struct lws_context_creation_info info = {0};
-    int n;
-
     info.port = port;
     info.protocols = protocols;
     info.gid = -1;
@@ -66,7 +65,7 @@ static int startServer(int port)
 
     signal(SIGINT, sighandler);
 
-    for (n = 0; n >= 0 && forceExit == 0;) {
+    for (int n = 0; n >= 0 && forceExit == false;) {
         n = libwebsocket_service(context, 50);
     }
     libwebsocket_context_destroy(context);

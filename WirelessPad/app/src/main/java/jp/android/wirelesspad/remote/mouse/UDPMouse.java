@@ -78,7 +78,7 @@ public class UDPMouse implements Mouse {
 
         mThreadPool.execute(new Runnable() {
             public void run() {
-                send(Command.MOVE + Command.DELIMITER + x + Command.DELIMITER + y);
+                send(Command.createMoveCommand(x, y));
             }
         });
         return true;
@@ -91,7 +91,7 @@ public class UDPMouse implements Mouse {
 
         mThreadPool.execute(new Runnable() {
             public void run() {
-                send(Command.SCROLL + Command.DELIMITER + amount);
+                send(Command.createScrollCommand(amount));
             }
         });
         return true;
@@ -106,13 +106,13 @@ public class UDPMouse implements Mouse {
             public void run() {
                 switch (type) {
                     case LEFT_CLICK:
-                        send(Command.LEFT_CLICK);
+                        send(Command.createLeftClickCommand());
                         return;
                     case RIGHT_CLICK:
-                        send(Command.RIGHT_CLICK);
+                        send(Command.createRightClickCommand());
                         return;
                     case DOUBLE_CLICK:
-                        send(Command.DOUBLE_CLICK);
+                        send(Command.createDoubleClickCommand());
                         return;
                     default:
                         throw new AssertionError("Unknown type: " + type);

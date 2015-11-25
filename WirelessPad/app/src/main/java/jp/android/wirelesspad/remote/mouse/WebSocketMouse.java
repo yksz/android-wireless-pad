@@ -86,7 +86,7 @@ public class WebSocketMouse implements Mouse {
         if (!isConnecting())
             return false;
 
-        return send(Command.MOVE + Command.DELIMITER + x + Command.DELIMITER + y);
+        return send(Command.createMoveCommand(x, y));
     }
 
     @Override
@@ -94,7 +94,7 @@ public class WebSocketMouse implements Mouse {
         if (!isConnecting())
             return false;
 
-        return send(Command.SCROLL + Command.DELIMITER + amount);
+        return send(Command.createScrollCommand(amount));
     }
 
     @Override
@@ -104,11 +104,11 @@ public class WebSocketMouse implements Mouse {
 
         switch (type) {
             case LEFT_CLICK:
-                return send(Command.LEFT_CLICK);
+                return send(Command.createLeftClickCommand());
             case RIGHT_CLICK:
-                return send(Command.RIGHT_CLICK);
+                return send(Command.createRightClickCommand());
             case DOUBLE_CLICK:
-                return send(Command.DOUBLE_CLICK);
+                return send(Command.createDoubleClickCommand());
             default:
                 throw new AssertionError("Unknown type: " + type);
         }

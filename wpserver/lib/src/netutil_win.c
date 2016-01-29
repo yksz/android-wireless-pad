@@ -1,9 +1,9 @@
-#include "networks.h"
+#include "netutil.h"
 #include <stdio.h>
 #include <winsock2.h>
 #include "logger.h"
 
-void networks_getLocalIPv4(char* localAddr, size_t len)
+void netutil_getLocalIPv4(char* localAddr, size_t len)
 {
     const char* unknownAddr = "unknown";
     char hostname[64];

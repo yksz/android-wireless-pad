@@ -2,7 +2,7 @@
 #include <winsock2.h>
 #include "logger.h"
 #include "mouse.h"
-#include "networks.h"
+#include "netutil.h"
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -109,7 +109,7 @@ static int startServer(int port)
     if (createServerSocket(&sock, port, kQueueSize) != 0) {
         return -1;
     }
-    networks_getLocalIPv4(ip, sizeof(ip));
+    netutil_getLocalIPv4(ip, sizeof(ip));
     LOG_INFO("Listening on IP address %s, port %d", ip, port);
 
     for (;;) {

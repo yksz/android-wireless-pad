@@ -4,10 +4,15 @@
 #include <stdlib.h>
 #include <time.h>
 #if defined(_WIN32) || defined(_WIN64)
- #include <windows.h>
+ #include <winsock2.h>
 #else
  #include <pthread.h>
-#endif /* _WIN32 || _WIN64 */
+ #include <sys/time.h>
+ #if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
+  #include <sys/syscall.h>
+  #include <unistd.h>
+ #endif /* defined(__linux__) || (defined(__APPLE__) && defined(__MACH__)) */
+#endif /* defined(_WIN32) || defined(_WIN64) */
 
 /* Logger type */
 static const int kConsoleLogger = 0;
@@ -18,10 +23,10 @@ static int s_logger;
 static enum LogLevel s_logLevel = LogLevel_INFO;
 static int s_initialized = 0; /* false */
 #if defined(_WIN32) || defined(_WIN64)
- static CRITICAL_SECTION s_mutex;
+static CRITICAL_SECTION s_mutex;
 #else
- static pthread_mutex_t s_mutex;
-#endif /* _WIN32 || _WIN64 */
+static pthread_mutex_t s_mutex;
+#endif /* defined(_WIN32) || defined(_WIN64) */
 
 /* Console logger */
 static FILE* s_cl_stream;
@@ -42,7 +47,7 @@ static void init(void)
     InitializeCriticalSection(&s_mutex);
 #else
     pthread_mutex_init(&s_mutex, NULL);
-#endif /* _WIN32 || _WIN64 */
+#endif /* defined(_WIN32) || defined(_WIN64) */
     s_initialized = 1; /* true */
 }
 
@@ -52,7 +57,7 @@ static void lock(void)
     EnterCriticalSection(&s_mutex);
 #else
     pthread_mutex_lock(&s_mutex);
-#endif /* _WIN32 || _WIN64 */
+#endif /* defined(_WIN32) || defined(_WIN64) */
 }
 
 static void unlock(void)
@@ -61,7 +66,41 @@ static void unlock(void)
     LeaveCriticalSection(&s_mutex);
 #else
     pthread_mutex_unlock(&s_mutex);
-#endif /* _WIN32 || _WIN64 */
+#endif /* defined(_WIN32) || defined(_WIN64) */
+}
+
+#if defined(_WIN32) || defined(_WIN64)
+static int gettimeofday(struct timeval* tv, void* tz)
+{
+    const UINT64 epochFileTime = 116444736000000000ULL;
+    FILETIME ft;
+    ULARGE_INTEGER li;
+    UINT64 t;
+
+    if (tv == NULL) {
+        return -1;
+    }
+    GetSystemTimeAsFileTime(&ft);
+    li.LowPart = ft.dwLowDateTime;
+    li.HighPart = ft.dwHighDateTime;
+    t = (li.QuadPart - epochFileTime) / 10;
+    tv->tv_sec = t / 1000000;
+    tv->tv_usec = t % 1000000;
+    return 0;
+}
+#endif /* defined(_WIN32) || defined(_WIN64) */
+
+static long getCurrentThreadID()
+{
+#if defined(_WIN32) || defined(_WIN64)
+    return GetCurrentThreadId();
+#elif __linux__
+    return syscall(SYS_gettid);
+#elif defined(__APPLE__) && defined(__MACH__)
+    return syscall(SYS_thread_selfid);
+#else
+    return (long) pthread_self();
+#endif /* defined(_WIN32) || defined(_WIN64) */
 }
 
 int logger_initConsoleLogger(FILE* fp)
@@ -99,6 +138,9 @@ int logger_initFileLogger(const char* filename, long maxFileSize, unsigned char 
         return 0;
     }
 
+    if (s_fl_fp != NULL) { /* reinit */
+        fclose(s_fl_fp);
+    }
     s_fl_fp = fopen(filename, "a");
     if (s_fl_fp == NULL) {
         fprintf(stderr, "ERROR: logger: Failed to open file: %s\n", filename);
@@ -156,7 +198,6 @@ static int rotateLogFiles(void)
     if (s_fl_currentFileSize < s_fl_maxFileSize) {
         return s_fl_fp != NULL;
     }
-
     fclose(s_fl_fp);
     for (i = s_fl_maxBackupFiles; i > 0; i--) {
         src = getBackupFileName(s_fl_filename, i - 1);
@@ -187,14 +228,17 @@ static int rotateLogFiles(void)
 
 static long vflog(enum LogLevel level, FILE* fp, const char* file, int line, const char* func, const char* fmt, va_list arg)
 {
+    struct timeval tv;
     time_t now;
-    char timestr[20];
+    char timestr[32];
     const char* levelstr;
     int size;
     long totalsize = 0;
 
-    now = time(NULL);
+    gettimeofday(&tv, NULL);
+    now = tv.tv_sec;
     strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M:%S", localtime(&now));
+    sprintf(timestr, "%s.%06ld", timestr, (long) tv.tv_usec);
     switch (level) {
         case LogLevel_TRACE:
             levelstr = "TRACE";
@@ -218,7 +262,7 @@ static long vflog(enum LogLevel level, FILE* fp, const char* file, int line, con
             assert(0 && "Unknown LogLevel");
             return 0;
     }
-    if ((size = fprintf(fp, "%s %s %s:%d:%s: ", timestr, levelstr, file, line, func)) > 0) {
+    if ((size = fprintf(fp, "%s %s %ld %s:%d:%s: ", timestr, levelstr, getCurrentThreadID(), file, line, func)) > 0) {
         totalsize += size;
     }
     if ((size = vfprintf(fp, fmt, arg)) > 0) {
@@ -244,7 +288,6 @@ void logger_log(enum LogLevel level, const char* file, int line, const char* fun
         unlock();
         return;
     }
-
     va_start(arg, fmt);
     if (s_logger == kConsoleLogger) {
         vflog(level, s_cl_stream, file, line, func, fmt, arg);

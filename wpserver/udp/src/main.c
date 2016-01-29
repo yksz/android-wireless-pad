@@ -8,11 +8,11 @@
 
 static const int kDefaultPort = 7681;
 
-static int receiveCommand(SOCKET* sock)
+static int receiveCommand(SOCKET sock)
 {
     char msg[MOUSE_COMMAND_MAX_SIZE] = {0};
 
-    if ((recvfrom(*sock, msg, sizeof(msg), 0, NULL, NULL)) == -1) {
+    if ((recvfrom(sock, msg, sizeof(msg), 0, NULL, NULL)) == -1) {
         LOG_ERROR("recvfrom: %d", WSAGetLastError());
         return -1;
     }
@@ -20,12 +20,12 @@ static int receiveCommand(SOCKET* sock)
     return 0;
 }
 
-static int createServerSocket(SOCKET* sock, int port)
+static int createServerSocket(SOCKET sock, int port)
 {
     struct sockaddr_in serverAddr;
 
-    *sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (*sock == INVALID_SOCKET) {
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock == INVALID_SOCKET) {
         LOG_ERROR("socket: %d", WSAGetLastError());
         return -1;
     }
@@ -35,7 +35,7 @@ static int createServerSocket(SOCKET* sock, int port)
     serverAddr.sin_port = htons(port);
     serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 
-    if (bind(*sock, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+    if (bind(sock, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
         LOG_ERROR("bind: %d", WSAGetLastError());
         return -1;
     }
@@ -52,13 +52,13 @@ static int startServer(int port)
         LOG_ERROR("WSAStartup: %d", WSAGetLastError());
         return -1;
     }
-    if (createServerSocket(&sock, port) != 0) {
+    if (createServerSocket(sock, port) != 0) {
         return -1;
     }
     netutil_getLocalIPv4(ip, sizeof(ip));
     LOG_INFO("Listening on IP address %s, port %d", ip, port);
 
-    while (receiveCommand(&sock) == 0);
+    while (receiveCommand(sock) == 0);
 
     closesocket(sock);
     WSACleanup();

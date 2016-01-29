@@ -9,15 +9,15 @@
 static const int kDefaultPort = 7681;
 static const int kQueueSize = 5;
 
-static int receiveLine(SOCKET sock, char* buf, int bufsize)
+static int receiveLine(SOCKET sock, char* buf, int len)
 {
-    int recvsize;
     int offset = 0;
+    int size;
 
-    while ((recvsize = recv(sock, &buf[offset], 1, 0)) > 0) { // 1byte by 1byte
-        offset += recvsize;
-        if (offset >= bufsize - 1) { // max size
-            buf[bufsize - 1] = '\0';
+    while ((size = recv(sock, &buf[offset], 1, 0)) > 0) { // 1byte by 1byte
+        offset += size;
+        if (offset >= len - 1) { // max size
+            buf[len - 1] = '\0';
             break;
         }
         if (buf[offset - 1] == '\n') { // line feed
@@ -25,11 +25,11 @@ static int receiveLine(SOCKET sock, char* buf, int bufsize)
             break;
         }
     }
-    if (recvsize == -1) {
+    if (size == -1) {
         LOG_ERROR("recv: %d", WSAGetLastError());
         return -1;
     }
-    LOG_TRACE("size=%d", offset);
+    LOG_TRACE("recv size=%d", offset);
     return offset;
 }
 
@@ -37,12 +37,11 @@ static int receiveCommand(SOCKET sock)
 {
     char msg[MOUSE_COMMAND_MAX_SIZE] = {0};
 
-    if (receiveLine(sock, msg, sizeof(msg)) > 0) {
-        mouse_execCommand(msg, sizeof(msg));
-        return 0;
-    } else {
+    if (receiveLine(sock, msg, sizeof(msg)) == -1) {
         return -1;
     }
+    mouse_execCommand(msg, sizeof(msg));
+    return 0;
 }
 
 static int acceptClient(SOCKET serverSock)
@@ -65,38 +64,38 @@ static int acceptClient(SOCKET serverSock)
     return 0;
 }
 
-static int createServerSocket(SOCKET* sock, int port, int queueSize)
+static int createServerSocket(SOCKET sock, int port, int queueSize)
 {
     BOOL soval;
     struct sockaddr_in serverAddr;
 
-    *sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (*sock == INVALID_SOCKET) {
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == INVALID_SOCKET) {
         LOG_ERROR("socket: %d", WSAGetLastError());
         return -1;
     }
 
     soval = 1;
-    setsockopt(*sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &soval, sizeof(soval));
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*) &soval, sizeof(soval));
 
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
     serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 
-    if (bind(*sock, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+    if (bind(sock, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
         LOG_ERROR("bind: %d", WSAGetLastError());
         return -1;
     }
 
-    if (listen(*sock, queueSize) == SOCKET_ERROR) {
+    if (listen(sock, queueSize) == SOCKET_ERROR) {
         LOG_ERROR("listen: %d", WSAGetLastError());
         return -1;
     }
     return 0;
 }
 
-static int startServer(int port)
+static int startServer(int port, int queueSize)
 {
     WSADATA data;
     SOCKET sock;
@@ -106,7 +105,7 @@ static int startServer(int port)
         LOG_ERROR("WSAStartup: %d", WSAGetLastError());
         return -1;
     }
-    if (createServerSocket(&sock, port, kQueueSize) != 0) {
+    if (createServerSocket(sock, port, queueSize) != 0) {
         return -1;
     }
     netutil_getLocalIPv4(ip, sizeof(ip));
@@ -137,5 +136,5 @@ int main(int argc, char* argv[])
     logger_initConsoleLogger(stderr);
     logger_setLevel(LogLevel_DEBUG);
 
-    return startServer(port);
+    return startServer(port, kQueueSize);
 }
